@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  BUCK ME — brand system                                            */
+/*  Tailwind v4 uses CSS-based config. Tokens declared here become    */
+/*  utilities, e.g. bg-ink, text-magenta, font-display.               */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Brand palette */
+  --color-magenta: #ff1f6d; /* primary   */
+  --color-coral: #ff7a4d;   /* secondary */
+  --color-cream: #fbf3ec;   /* background */
+  --color-ink: #141014;     /* text / dark */
+  --color-blush: #ffd9e2;   /* soft accent */
+
+  /* Type — loud display vs calm body */
+  --font-display: var(--font-archivo-black), system-ui, sans-serif;
+  --font-body: var(--font-archivo), system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth in-page scrolling between sections */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loud display headings: tight tracking, near-collapsed leading */
+.display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+}
+
+/* Visible keyboard focus everywhere */
+:focus-visible {
+  outline: 3px solid var(--color-magenta);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Marquee — infinite horizontal scroll, pauses on hover             */
+/* ------------------------------------------------------------------ */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+}
+.marquee-pause:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Custom range slider — magenta fill, chunky ink thumb              */
+/* ------------------------------------------------------------------ */
+.buck-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--color-magenta) 0%,
+    var(--color-coral) var(--fill, 50%),
+    var(--color-blush) var(--fill, 50%),
+    var(--color-blush) 100%
+  );
+  outline-offset: 6px;
+}
+.buck-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 4px solid var(--color-cream);
+  box-shadow: 0 4px 16px rgba(20, 16, 20, 0.35);
+  cursor: grab;
+  transition: transform 0.12s ease;
+}
+.buck-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.12);
+}
+.buck-slider::-moz-range-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 4px solid var(--color-cream);
+  box-shadow: 0 4px 16px rgba(20, 16, 20, 0.35);
+  cursor: grab;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Respect prefers-reduced-motion — kill all motion                  */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
