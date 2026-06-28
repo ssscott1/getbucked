@@ -58,8 +58,8 @@ export function Hero() {
         >
           Buck{" "}
           <span className="whitespace-nowrap text-magenta">
-            Me
-            <WinkingEye className="ml-2 align-baseline text-magenta" />
+            Me{"   "}
+            <WinkingEye className="align-baseline text-magenta" />
           </span>
         </motion.h1>
 
