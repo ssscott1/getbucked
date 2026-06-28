@@ -3,28 +3,26 @@
 import { motion, useReducedMotion } from "framer-motion";
 
 /**
- * The Buck Me mark — a cheeky ";)" winky face: one open eye, one winking
- * eye, and a smile. The winking eye does a quick "re-wink" roughly every
- * 3s for a bit of life. Honours prefers-reduced-motion by staying still
- * (and still reads as ";)").
- *
- * Draws with `currentColor`, so it inherits whatever text colour it sits
- * in (cream in the nav, magenta in the hero).
+ * The Buck Me mark — the literal ";)" emoticon, a semicolon + bracket.
+ * It winks roughly every 3s: the eye glyph flicks from ";" (winking) to
+ * ":" (open) and back. Rendered as text in the display font with
+ * currentColor, so it inherits its surrounding size and colour.
+ * Honours prefers-reduced-motion by holding a static ";)".
  */
 export function WinkingEye({
   className = "",
-  title = "Buck Me winking face",
+  title = "Buck Me winky face",
 }: {
   className?: string;
   title?: string;
 }) {
   const reduce = useReducedMotion();
 
-  // The wink: the right eye flicks open to a dot, then closes again.
-  // closed line ↔ open dot crossfade, weighted so "open" is brief.
-  const closedAnim = reduce ? { opacity: 1 } : { opacity: [1, 1, 0, 1, 1] };
+  // Crossfade the eye between ";" (winking, default) and ":" (open).
+  // Weighted so it sits as ";" almost the whole time, opening briefly.
+  const winkAnim = reduce ? { opacity: 1 } : { opacity: [1, 1, 0, 1, 1] };
   const openAnim = reduce ? { opacity: 0 } : { opacity: [0, 0, 1, 0, 0] };
-  const winkTransition = reduce
+  const transition = reduce
     ? undefined
     : {
         duration: 3,
@@ -35,42 +33,29 @@ export function WinkingEye({
 
   return (
     <span
-      className={`inline-flex items-center justify-center ${className}`}
+      className={`font-display inline-flex items-baseline ${className}`}
       role="img"
       aria-label={title}
     >
-      <svg
-        viewBox="0 0 48 48"
-        className="h-[0.9em] w-[0.9em] overflow-visible"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        {/* Open (left) eye */}
-        <circle cx="17.5" cy="19" r="2.6" fill="currentColor" stroke="none" />
-
-        {/* Winking (right) eye — closed line that briefly opens to a dot */}
-        <motion.path
-          d="M27 20 Q30.5 23 34 20"
-          animate={closedAnim}
-          transition={winkTransition}
-        />
-        <motion.circle
-          cx="30.5"
-          cy="19"
-          r="2.6"
-          fill="currentColor"
-          stroke="none"
+      {/* The winking eye: ";" and ":" stacked so they swap with no shift */}
+      <span className="relative inline-block" aria-hidden="true">
+        <span className="invisible">;</span>
+        <motion.span
+          className="absolute inset-0"
+          animate={winkAnim}
+          transition={transition}
+        >
+          ;
+        </motion.span>
+        <motion.span
+          className="absolute inset-0"
           animate={openAnim}
-          transition={winkTransition}
-        />
-
-        {/* Smile */}
-        <path d="M15 28 Q24 37 33 28" />
-      </svg>
+          transition={transition}
+        >
+          :
+        </motion.span>
+      </span>
+      <span aria-hidden="true">)</span>
     </span>
   );
 }
