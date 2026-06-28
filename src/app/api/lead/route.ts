@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createLead } from "@/lib/leads";
+import { notifyNewLead } from "@/lib/notify";
 import {
   MIN_AMOUNT,
   MAX_AMOUNT,
@@ -83,6 +84,18 @@ export async function POST(req: NextRequest) {
       { status: 502 }
     );
   }
+
+  // Best-effort new-lead email. Awaited (so it runs to completion on
+  // serverless) but it never throws, so it can't fail the submission.
+  await notifyNewLead({
+    firstName,
+    email,
+    mobile,
+    amount: Math.round(amount),
+    frequency,
+    purpose,
+    source,
+  });
 
   return NextResponse.json({ ok: true, id: result.id });
 }

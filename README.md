@@ -75,6 +75,16 @@ A password-protected lead desk at **`/admin`** (sign in with `ADMIN_SECRET`):
 
 Stages are defined in one place — `src/lib/stages.ts`.
 
+## Email notifications
+
+When a lead is submitted, the API route sends a best-effort notification email
+(via [Resend](https://resend.com)) to `LEAD_NOTIFY_TO` (default
+`scott.iriks@gmail.com`). It's fire-safe: if the email fails or `RESEND_API_KEY`
+isn't set, the lead is still captured and the visitor still sees their
+confirmation. Logic lives in `src/lib/notify.ts`. To enable: add a Resend API
+key (signing up with the recipient address lets the default sender work without
+verifying a domain).
+
 ## Scripts
 
 ```bash
