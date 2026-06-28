@@ -19,28 +19,61 @@ npm run dev                  # http://localhost:3000
 
 ## Environment variables
 
-Set these in `.env.local` (git-ignored). Find them in
+Set these in `.env.local` (git-ignored), and in your host (e.g. Netlify →
+Site settings → Environment variables). Supabase values are in
 **Supabase → Project Settings → API**.
 
-| Variable | Where it's used | Notes |
+| Variable | Required | Notes |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | client + server | Project URL. Safe to expose. |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | Anon/publishable key. Safe to expose. |
-| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | Used by the lead-write path to bypass RLS. **Never** commit it or import it into client code. |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | Project URL. Safe to expose. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Anon key. Safe to expose. |
+| `ADMIN_SECRET` | yes (for `/admin`) | The CRM login password **and** the secret used to reach the gated `admin_*` DB functions. Must match the value stored in `public.admin_config`. Generate with `openssl rand -hex 24`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | no | Not needed — the app never uses a service-role key. Left in `.env.example` only for reference. |
 
-If the server vars are missing at runtime, the lead API fails gracefully with
+If the Supabase vars are missing at runtime, the lead API fails gracefully with
 a clear console message instead of crashing.
 
 ## Database
 
-The app depends on a `public.leads` table. The migration lives in
-[`supabase/migrations/0001_create_leads.sql`](supabase/migrations/0001_create_leads.sql).
-RLS is **on** with no public policies — all writes happen server-side using the
-service-role key.
+Migrations live in [`supabase/migrations/`](supabase/migrations). They create:
 
-To verify a submitted lead, open **Supabase → Table editor → `leads`**; each
-completed application inserts one row (name, email, mobile, amount, frequency,
-purpose, `source` = which CTA opened the form, `status` = `new`).
+- `public.leads` — the lead/pipeline table (adds a `stage` column + audit
+  `updated_at`).
+- `public.lead_notes`, `public.lead_events` — CRM notes and an activity log.
+- `public.admin_config` — holds the single admin secret.
+- `submit_lead(...)` — the public form's write path.
+- `admin_*(...)` — the CRM's read/write functions, gated by the secret.
+
+**Security model (no service-role key anywhere):** every table has RLS **on**
+with no public policies, so the anon key can't read or write tables directly.
+All access goes through `SECURITY DEFINER` functions: `submit_lead` validates
+and inserts a lead (public), and the `admin_*` functions require `ADMIN_SECRET`
+(checked against `admin_config`) before returning or changing anything.
+
+After running migration `0002` on a fresh project, seed the secret once
+(not in source control):
+
+```sql
+insert into public.admin_config (secret) values ('<your ADMIN_SECRET>');
+```
+
+To verify a submitted lead, open **Supabase → Table editor → `leads`** (or just
+open `/admin`); each completed application inserts one row with `source` = which
+CTA opened the form and `stage` = `new`.
+
+## CRM — `/admin`
+
+A password-protected lead desk at **`/admin`** (sign in with `ADMIN_SECRET`):
+
+- **Kanban pipeline** across six stages — New → Contacted → Qualified →
+  Approved → Funded, plus Lost. Drag cards between columns (or use the per-card
+  menu / the drawer's stage selector); moves are optimistic and persisted.
+- **Pipeline KPIs** — leads in pipeline, open pipeline value, funded value.
+- **Lead drawer** — full contact details (click-to-email / click-to-call),
+  notes, and an automatic **activity timeline** (created, stage changes, notes).
+- **Search & filter** by name/email/mobile and purpose.
+
+Stages are defined in one place — `src/lib/stages.ts`.
 
 ## Scripts
 
@@ -58,9 +91,10 @@ npm run lint    # eslint
   site are illustrative only; swap this for a real comparison-rate calculation
   before going live.
 - **CRM / lead storage** — `src/lib/leads.ts` is the **only** file that knows
-  where leads go. It exposes one function, `createLead(input)`. To move from
+  where new leads go (it calls the `submit_lead` RPC). To move capture from
   Supabase to HubSpot / Salesforce / a webhook, rewrite that function's body
-  and nothing else changes. Keep the `LeadInput` shape and `{ ok }` return.
+  and nothing else changes. The admin/CRM read+write layer is similarly
+  isolated in `src/lib/admin/data.ts`.
 - **Brand tokens** — `src/app/globals.css` `@theme` block (Tailwind v4
   CSS-based config). Colours become utilities like `bg-ink`, `text-magenta`;
   fonts are `font-display` / `font-body`.
