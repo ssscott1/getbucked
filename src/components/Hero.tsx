@@ -27,7 +27,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative flex min-h-screen items-center overflow-hidden bg-cream pt-24"
+      className="relative flex min-h-screen items-center overflow-hidden bg-cream pt-24 pb-24"
     >
       {/* Soft blush radial glow, top-right */}
       <div
