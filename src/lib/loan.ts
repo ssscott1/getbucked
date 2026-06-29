@@ -1,25 +1,44 @@
 /* ------------------------------------------------------------------ */
 /*  Loan maths — SHARED by the calculator, modal and (validation) API. */
 /*                                                                     */
-/*  ⚠️ ILLUSTRATIVE ONLY. These figures are a rough indication, not a  */
-/*  quote, and must never imply a guaranteed rate. The single factor   */
-/*  below is a placeholder — replace REPAYMENT_FACTOR with a real      */
-/*  comparison-rate-based calculation before going live.               */
+/*  Product terms mirror a Plenti-style unsecured personal loan:       */
+/*  $5,000–$75,000 over 1–7 years, rates from 6.17% p.a.               */
+/*                                                                     */
+/*  ⚠️ ILLUSTRATIVE ONLY. Repayments are computed at the headline      */
+/*  "from" rate and must never imply a guaranteed rate — the actual    */
+/*  rate (6.17%–24.09% p.a.) depends on the assessment. Swap           */
+/*  ANNUAL_RATE for a real per-customer rate before going live; it is  */
+/*  the single cost-of-credit knob.                                    */
 /* ------------------------------------------------------------------ */
 
-export const MIN_AMOUNT = 300;
-export const MAX_AMOUNT = 2000;
-export const AMOUNT_STEP = 50;
-export const DEFAULT_AMOUNT = 750;
+// Loan amount range (AUD)
+export const MIN_AMOUNT = 5000;
+export const MAX_AMOUNT = 75000;
+export const AMOUNT_STEP = 1000;
+export const DEFAULT_AMOUNT = 30000;
 
-// Loan is illustrated over a fixed 12-week term.
-export const TERM_WEEKS = 12;
+// Loan term range (years)
+export const MIN_TERM_YEARS = 1;
+export const MAX_TERM_YEARS = 7;
+export const DEFAULT_TERM_YEARS = 5;
 
-// Placeholder cost-of-credit factor. amount * FACTOR = total repayable.
-// Swap this for a real comparison-rate calc — keep it the only knob.
-export const REPAYMENT_FACTOR = 1.14;
+// Headline / disclosed costs (percentages, for copy + the maths below).
+export const HEADLINE_RATE = 6.17; // p.a. "from" rate
+export const COMPARISON_RATE = 6.17; // p.a. comparison rate ($30k / 5yr basis)
+export const MAX_RATE = 24.09; // p.a. top of the range
+export const ESTABLISHMENT_FEE_MAX = 599; // $0–$599, no ongoing/exit fees
 
-export type Frequency = "weekly" | "fortnightly";
+// Illustrative interest rate used to amortise the repayment estimate.
+export const ANNUAL_RATE = HEADLINE_RATE / 100;
+
+export type Frequency = "weekly" | "fortnightly" | "monthly";
+
+export const FREQUENCIES: { value: Frequency; label: string; perYear: number }[] =
+  [
+    { value: "weekly", label: "Weekly", perYear: 52 },
+    { value: "fortnightly", label: "Fortnightly", perYear: 26 },
+    { value: "monthly", label: "Monthly", perYear: 12 },
+  ];
 
 export const PURPOSES = [
   { value: "car", label: "Car" },
@@ -31,29 +50,51 @@ export const PURPOSES = [
 
 export type Purpose = (typeof PURPOSES)[number]["value"];
 
-/** Total repayable across the whole term (illustrative). */
-export function totalRepayable(amount: number): number {
-  return amount * REPAYMENT_FACTOR;
+function periodsPerYear(frequency: Frequency): number {
+  return FREQUENCIES.find((f) => f.value === frequency)?.perYear ?? 12;
+}
+
+/** Total number of repayments across the whole term. */
+export function periodCount(frequency: Frequency, termYears: number): number {
+  return Math.round(periodsPerYear(frequency) * termYears);
 }
 
 /**
- * Per-period repayment, rounded to the nearest dollar.
- * Weekly = 12 payments, fortnightly = 6 payments over the same term.
+ * Per-period repayment, rounded to the nearest dollar — a standard
+ * amortising loan payment at ANNUAL_RATE over the chosen term. Illustrative.
  */
-export function repaymentPerPeriod(amount: number, frequency: Frequency): number {
-  const periods = frequency === "weekly" ? TERM_WEEKS : TERM_WEEKS / 2;
-  return Math.round(totalRepayable(amount) / periods);
+export function repaymentPerPeriod(
+  amount: number,
+  frequency: Frequency,
+  termYears: number
+): number {
+  const n = periodCount(frequency, termYears);
+  const r = ANNUAL_RATE / periodsPerYear(frequency); // rate per period
+  if (r === 0) return Math.round(amount / n);
+  const payment = (amount * r) / (1 - Math.pow(1 + r, -n));
+  return Math.round(payment);
 }
 
-/** Number of repayments for the chosen frequency. */
-export function periodCount(frequency: Frequency): number {
-  return frequency === "weekly" ? TERM_WEEKS : TERM_WEEKS / 2;
+/** Total repayable across the whole term (illustrative). */
+export function totalRepayable(
+  amount: number,
+  frequency: Frequency,
+  termYears: number
+): number {
+  return repaymentPerPeriod(amount, frequency, termYears) * periodCount(frequency, termYears);
 }
 
 /** Snap an arbitrary number to the allowed slider range + step. */
 export function clampAmount(value: number): number {
   const stepped = Math.round(value / AMOUNT_STEP) * AMOUNT_STEP;
   return Math.min(MAX_AMOUNT, Math.max(MIN_AMOUNT, stepped));
+}
+
+/** Short label for a repayment period, e.g. "wk", "fn", "mo". */
+export function periodUnit(frequency: Frequency): string {
+  if (frequency === "weekly") return "wk";
+  if (frequency === "fortnightly") return "fn";
+  return "mo";
 }
 
 /** Format an integer dollar amount as AUD, no cents. */

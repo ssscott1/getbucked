@@ -4,7 +4,12 @@ import { notifyNewLead } from "@/lib/notify";
 import {
   MIN_AMOUNT,
   MAX_AMOUNT,
+  MIN_TERM_YEARS,
+  MAX_TERM_YEARS,
+  DEFAULT_TERM_YEARS,
+  FREQUENCIES as FREQ_OPTIONS,
   PURPOSES,
+  formatAUD,
   type Frequency,
   type Purpose,
 } from "@/lib/loan";
@@ -13,8 +18,10 @@ export const runtime = "nodejs";
 
 // Basic email shape — intentionally permissive, not RFC-perfect.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FREQUENCIES: Frequency[] = ["weekly", "fortnightly"];
+const FREQUENCIES = FREQ_OPTIONS.map((f) => f.value);
 const PURPOSE_VALUES = PURPOSES.map((p) => p.value);
+const MIN_TERM_MONTHS = MIN_TERM_YEARS * 12;
+const MAX_TERM_MONTHS = MAX_TERM_YEARS * 12;
 
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
@@ -39,6 +46,7 @@ export async function POST(req: NextRequest) {
   const amount = Number(body.amount);
   const frequency = String(body.frequency ?? "") as Frequency;
   const purpose = String(body.purpose ?? "") as Purpose;
+  const termMonths = Number(body.termMonths ?? DEFAULT_TERM_YEARS * 12);
   const source = String(body.source ?? "unknown").slice(0, 60);
 
   // ---- Server-side validation (never trust the client) ----
@@ -51,15 +59,20 @@ export async function POST(req: NextRequest) {
   if (!mobile || mobile.replace(/\D/g, "").length < 8) {
     return fail("We need a mobile we can text — double-check that one.");
   }
-  if (
-    !Number.isFinite(amount) ||
-    amount < MIN_AMOUNT ||
-    amount > MAX_AMOUNT
-  ) {
-    return fail(`Pick an amount between $${MIN_AMOUNT} and $${MAX_AMOUNT}.`);
+  if (!Number.isFinite(amount) || amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+    return fail(
+      `Pick an amount between ${formatAUD(MIN_AMOUNT)} and ${formatAUD(MAX_AMOUNT)}.`
+    );
   }
   if (!FREQUENCIES.includes(frequency)) {
-    return fail("Choose weekly or fortnightly.");
+    return fail("Choose weekly, fortnightly or monthly.");
+  }
+  if (
+    !Number.isFinite(termMonths) ||
+    termMonths < MIN_TERM_MONTHS ||
+    termMonths > MAX_TERM_MONTHS
+  ) {
+    return fail(`Choose a term between ${MIN_TERM_YEARS} and ${MAX_TERM_YEARS} years.`);
   }
   if (!PURPOSE_VALUES.includes(purpose)) {
     return fail("Let us know what it's for.");
@@ -72,6 +85,7 @@ export async function POST(req: NextRequest) {
     amount: Math.round(amount),
     frequency,
     purpose,
+    termMonths: Math.round(termMonths),
     source,
   });
 
@@ -94,6 +108,7 @@ export async function POST(req: NextRequest) {
     amount: Math.round(amount),
     frequency,
     purpose,
+    termMonths: Math.round(termMonths),
     source,
   });
 

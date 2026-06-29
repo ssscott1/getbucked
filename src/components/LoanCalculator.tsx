@@ -4,30 +4,32 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useModal } from "./ModalProvider";
 import { AmountSlider } from "./AmountSlider";
+import { TermSlider } from "./TermSlider";
 import { FrequencyToggle } from "./FrequencyToggle";
 import { LiveAmount } from "./LiveAmount";
 import {
   DEFAULT_AMOUNT,
+  DEFAULT_TERM_YEARS,
+  COMPARISON_RATE,
+  HEADLINE_RATE,
+  ESTABLISHMENT_FEE_MAX,
   formatAUD,
   repaymentPerPeriod,
-  periodCount,
+  periodUnit,
   type Frequency,
 } from "@/lib/loan";
 
 export function LoanCalculator() {
   const { openModal } = useModal();
   const [amount, setAmount] = useState(DEFAULT_AMOUNT);
-  const [frequency, setFrequency] = useState<Frequency>("weekly");
+  const [termYears, setTermYears] = useState(DEFAULT_TERM_YEARS);
+  const [frequency, setFrequency] = useState<Frequency>("monthly");
 
-  const perPeriod = repaymentPerPeriod(amount, frequency);
-  const periods = periodCount(frequency);
-  const unit = frequency === "weekly" ? "wk" : "fn";
+  const perPeriod = repaymentPerPeriod(amount, frequency, termYears);
+  const unit = periodUnit(frequency);
 
   return (
-    <section
-      id="how"
-      className="bg-cream px-5 py-20 sm:px-8 sm:py-28"
-    >
+    <section id="how" className="bg-cream px-5 py-20 sm:px-8 sm:py-28">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -47,9 +49,14 @@ export function LoanCalculator() {
           <LiveAmount amount={amount} className="text-7xl sm:text-8xl" />
         </div>
 
-        {/* Slider */}
+        {/* Amount slider */}
         <div className="mt-8">
           <AmountSlider value={amount} onChange={setAmount} />
+        </div>
+
+        {/* Term slider */}
+        <div className="mt-8">
+          <TermSlider years={termYears} onChange={setTermYears} />
         </div>
 
         {/* Frequency toggle */}
@@ -63,18 +70,21 @@ export function LoanCalculator() {
           <span className="font-bold text-ink">
             {formatAUD(perPeriod)}/{unit}
           </span>{" "}
-          over {periods} {frequency === "weekly" ? "weeks" : "fortnights"}.
-          Pay early, pay less — no exit fee.
+          over {termYears} {termYears === 1 ? "year" : "years"}. Pay early, pay
+          less — no exit fee.
         </p>
-        <p className="mt-2 text-xs text-ink/50">
-          Figures are illustrative only, not a quote or an offer of credit.
+        <p className="mx-auto mt-2 max-w-lg text-xs text-ink/50">
+          Illustrative only at {HEADLINE_RATE}% p.a. ({COMPARISON_RATE}%
+          comparison rate). Your rate (6.17%–24.09% p.a.) depends on a quick
+          assessment. Establishment fee $0–${ESTABLISHMENT_FEE_MAX}; no monthly
+          or early-repayment fees.
         </p>
 
         {/* CTA — label tracks the amount */}
         <button
           type="button"
           onClick={() =>
-            openModal({ source: "calculator", amount, frequency })
+            openModal({ source: "calculator", amount, frequency, termYears })
           }
           className="mt-8 rounded-full bg-magenta px-9 py-4 text-lg font-bold uppercase tracking-wide text-cream shadow-lg shadow-magenta/30 transition-transform hover:-translate-y-0.5 hover:scale-[1.03] active:scale-95"
         >

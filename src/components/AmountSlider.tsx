@@ -3,7 +3,7 @@
 import { MIN_AMOUNT, MAX_AMOUNT, AMOUNT_STEP, formatAUD } from "@/lib/loan";
 
 /**
- * Custom range slider, $300–$2,000 in $50 steps.
+ * Custom range slider, $5,000–$75,000 in $1,000 steps.
  * The filled portion of the track is driven by the `--fill` CSS var.
  */
 export function AmountSlider({

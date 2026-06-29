@@ -120,6 +120,9 @@ export function LeadDrawer({
                 {formatAUD(lead.amount ?? 0)}
               </p>
               <p className="mt-1 text-sm capitalize text-cream/70">
+                {lead.term_months != null
+                  ? `${Math.round(lead.term_months / 12)} yr · `
+                  : ""}
                 {lead.frequency} repayments · {lead.purpose}
               </p>
             </div>

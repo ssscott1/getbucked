@@ -58,6 +58,11 @@ export function LeadCard({
         <span className="rounded-full bg-ink/5 px-2 py-0.5 font-medium">
           {PURPOSE_LABEL[lead.purpose ?? ""] ?? lead.purpose ?? "—"}
         </span>
+        {lead.term_months != null && (
+          <span className="rounded-full bg-ink/5 px-2 py-0.5 font-medium">
+            {Math.round(lead.term_months / 12)} yr
+          </span>
+        )}
         <span className="rounded-full bg-ink/5 px-2 py-0.5 font-medium capitalize">
           {lead.frequency ?? "—"}
         </span>

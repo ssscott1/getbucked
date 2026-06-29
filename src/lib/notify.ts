@@ -32,6 +32,7 @@ export type LeadNotification = {
   amount: number;
   frequency: Frequency;
   purpose: Purpose;
+  termMonths: number;
   source: string;
 };
 
@@ -51,9 +52,10 @@ export async function notifyNewLead(lead: LeadNotification): Promise<void> {
   const purpose = PURPOSE_LABEL[lead.purpose] ?? lead.purpose;
   const subject = `💸 New lead: ${lead.firstName} wants ${amount}`;
 
+  const termYears = Math.round(lead.termMonths / 12);
   const rows: [string, string][] = [
     ["Name", lead.firstName],
-    ["Amount", `${amount} (${lead.frequency})`],
+    ["Amount", `${amount} over ${termYears} yr (${lead.frequency})`],
     ["For", purpose],
     ["Email", lead.email],
     ["Mobile", lead.mobile],

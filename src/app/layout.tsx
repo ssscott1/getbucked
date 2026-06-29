@@ -22,7 +22,7 @@ const archivoBlack = Archivo_Black({
 export const metadata: Metadata = {
   title: "Buck Me — Cash that says yes",
   description:
-    "Small personal loans, $300–$2,000. No broker, no begging, no 'let me check with my manager.' Approved before you've changed your mind.",
+    "Personal loans $5,000–$75,000 over 1–7 years, rates from 6.17% p.a. No broker, no begging, no 'let me check with my manager.' Approved before you've changed your mind.",
 };
 
 export default function RootLayout({

@@ -1,10 +1,10 @@
 "use client";
 
 const ITEMS = [
-  "Approved in minutes",
-  "$300–$2,000",
-  "No paper, no phone tag",
-  "Pay it back your way",
+  "Rates from 6.17% p.a.",
+  "$5,000–$75,000",
+  "1–7 year terms",
+  "No monthly or early-repayment fees",
 ];
 
 export function Marquee() {

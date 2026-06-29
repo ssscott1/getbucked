@@ -103,6 +103,7 @@ export type Database = {
           source: string | null
           stage: string
           status: string
+          term_months: number | null
           updated_at: string
         }
         Insert: {
@@ -117,6 +118,7 @@ export type Database = {
           source?: string | null
           stage?: string
           status?: string
+          term_months?: number | null
           updated_at?: string
         }
         Update: {
@@ -131,6 +133,7 @@ export type Database = {
           source?: string | null
           stage?: string
           status?: string
+          term_months?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -166,6 +169,7 @@ export type Database = {
           source: string | null
           stage: string
           status: string
+          term_months: number | null
           updated_at: string
         }[]
       }
@@ -183,6 +187,7 @@ export type Database = {
           source: string | null
           stage: string
           status: string
+          term_months: number | null
           updated_at: string
         }
       }
@@ -196,6 +201,7 @@ export type Database = {
           p_frequency: string
           p_purpose: string
           p_source: string
+          p_term_months?: number
         }
         Returns: string
       }

@@ -96,9 +96,11 @@ npm run lint    # eslint
 
 ## Where to change things
 
-- **Repayment maths** — `src/lib/loan.ts`. The illustrative cost factor is the
-  single constant `REPAYMENT_FACTOR` (and `TERM_WEEKS`). All figures on the
-  site are illustrative only; swap this for a real comparison-rate calculation
+- **Product terms & repayment maths** — `src/lib/loan.ts`. Amount range
+  ($5,000–$75,000), term range (1–7 years), repayment frequencies, and the
+  rates/fees live here. Repayments are amortised at `ANNUAL_RATE` (the single
+  illustrative cost-of-credit knob — currently the 6.17% p.a. "from" rate).
+  All figures are illustrative; swap `ANNUAL_RATE` for a real per-customer rate
   before going live.
 - **CRM / lead storage** — `src/lib/leads.ts` is the **only** file that knows
   where new leads go (it calls the `submit_lead` RPC). To move capture from
@@ -112,7 +114,7 @@ npm run lint    # eslint
 ## Architecture notes
 
 - `src/app/api/lead/route.ts` — POST endpoint: validates input (email shape,
-  amount $300–$2,000, frequency enum, required name), checks a honeypot field,
+  amount $5,000–$75,000, term 1–7 years, frequency enum, required name), checks a honeypot field,
   then calls `createLead()`.
 - `src/components/ModalProvider.tsx` — context that lets any CTA open the
   multi-step application modal, passing a `source` tag and optional prefilled

@@ -22,6 +22,7 @@ export type LeadInput = {
   amount: number;
   frequency: Frequency;
   purpose: Purpose;
+  termMonths: number; // chosen loan term, in months
   source: string; // which CTA opened the form
 };
 
@@ -45,6 +46,7 @@ export async function createLead(input: LeadInput): Promise<CreateLeadResult> {
       p_frequency: input.frequency,
       p_purpose: input.purpose,
       p_source: input.source,
+      p_term_months: input.termMonths,
     });
 
     if (error) {

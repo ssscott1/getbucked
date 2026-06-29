@@ -28,12 +28,21 @@ export function Footer() {
           <div className="space-y-4 leading-relaxed">
             <p className="font-semibold text-cream">Borrow only what you can repay.</p>
             <p>
-              Buck Me offers small personal loans to eligible Australian
-              residents. All applications are subject to a suitability and
-              affordability assessment — applying does not guarantee approval,
-              and any repayment figures shown on this site are illustrative
-              only and not an offer of credit. Consider whether a loan is right
-              for you and read the terms before applying.
+              Buck Me offers unsecured personal loans of $5,000–$75,000 over
+              1–7 years to eligible Australian residents. Interest rates range
+              from 6.17% p.a. to 24.09% p.a. (comparison rate from 6.17% p.a.)
+              depending on your circumstances. An establishment fee of $0–$599
+              may apply; there are no monthly or early-repayment fees.
+            </p>
+            <p>
+              The comparison rate is based on a $30,000 unsecured loan over 5
+              years. WARNING: this comparison rate is true only for the example
+              given and may not include all fees and charges. Different terms,
+              fees or loan amounts might result in a different comparison rate.
+              All applications are subject to a suitability and affordability
+              assessment — applying does not guarantee approval, and any
+              repayment figures shown here are illustrative only and not an
+              offer of credit.
             </p>
             <p>
               Australian Credit Licence pending. Buck Me is committed to

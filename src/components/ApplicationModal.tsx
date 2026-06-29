@@ -4,12 +4,14 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useModal } from "./ModalProvider";
 import { AmountSlider } from "./AmountSlider";
+import { TermSlider } from "./TermSlider";
 import { FrequencyToggle } from "./FrequencyToggle";
 import { LiveAmount } from "./LiveAmount";
 import {
   PURPOSES,
   formatAUD,
   repaymentPerPeriod,
+  periodUnit,
   type Frequency,
   type Purpose,
 } from "@/lib/loan";
@@ -27,7 +29,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * from the current context values (no state-syncing effects needed).
  */
 export function ApplicationModal() {
-  const { open, source, amount, frequency, closeModal } = useModal();
+  const { open, source, amount, frequency, termYears, closeModal } = useModal();
 
   return (
     <AnimatePresence>
@@ -36,6 +38,7 @@ export function ApplicationModal() {
           source={source}
           initialAmount={amount}
           initialFrequency={frequency}
+          initialTermYears={termYears}
           onClose={closeModal}
         />
       )}
@@ -47,11 +50,13 @@ function ModalDialog({
   source,
   initialAmount,
   initialFrequency,
+  initialTermYears,
   onClose,
 }: {
   source: string;
   initialAmount: number;
   initialFrequency: Frequency;
+  initialTermYears: number;
   onClose: () => void;
 }) {
   const reduce = useReducedMotion();
@@ -59,6 +64,7 @@ function ModalDialog({
   // ---- Form state — persists across back/forward while mounted ----
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [amount, setAmount] = useState(initialAmount);
+  const [termYears, setTermYears] = useState(initialTermYears);
   const [frequency, setFrequency] = useState<Frequency>(initialFrequency);
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
@@ -142,6 +148,7 @@ function ModalDialog({
           amount,
           frequency,
           purpose,
+          termMonths: termYears * 12,
           source,
           company, // honeypot
         }),
@@ -259,6 +266,10 @@ function ModalDialog({
 
               <AmountSlider value={amount} onChange={setAmount} />
 
+              <div className="mt-6">
+                <TermSlider years={termYears} onChange={setTermYears} />
+              </div>
+
               <div className="mt-6 flex justify-center">
                 <FrequencyToggle value={frequency} onChange={setFrequency} />
               </div>
@@ -266,10 +277,11 @@ function ModalDialog({
               <p className="mt-5 text-center text-sm text-ink/70">
                 Roughly{" "}
                 <span className="font-bold text-ink">
-                  {formatAUD(repaymentPerPeriod(amount, frequency))}/
-                  {frequency === "weekly" ? "wk" : "fn"}
-                </span>
-                . Illustrative only.
+                  {formatAUD(repaymentPerPeriod(amount, frequency, termYears))}/
+                  {periodUnit(frequency)}
+                </span>{" "}
+                over {termYears} {termYears === 1 ? "year" : "years"}.
+                Illustrative only.
               </p>
 
               <button
@@ -440,8 +452,14 @@ function ModalDialog({
               <dl className="mx-auto mt-8 max-w-xs space-y-2 rounded-2xl bg-ink/5 p-5 text-left text-sm">
                 <Row label="Amount" value={formatAUD(amount)} />
                 <Row
+                  label="Term"
+                  value={`${termYears} ${termYears === 1 ? "year" : "years"}`}
+                />
+                <Row
                   label="Repayments"
-                  value={frequency === "weekly" ? "Weekly" : "Fortnightly"}
+                  value={
+                    frequency.charAt(0).toUpperCase() + frequency.slice(1)
+                  }
                 />
                 <Row label="What for" value={purposeLabel} />
               </dl>
